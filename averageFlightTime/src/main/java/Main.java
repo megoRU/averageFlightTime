@@ -1,17 +1,31 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-
+import java.util.stream.Stream;
 
 public class Main {
 
+    private static final String PATH = "data/tickets.json";
+
     public static void main(String[] args) {
         try {
-            File file = new File("data/tickets.json");
+            StringBuilder stringBuilder = new StringBuilder();
+
+            try (
+                    InputStream inputStream = Main.class.getResourceAsStream(PATH);
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+
+                Stream<String> lines = bufferedReader.lines();
+                lines.forEach(l -> stringBuilder.append(l).append("\n"));
+            }
 
             ObjectMapper mapper = new ObjectMapper();
-            TicketWrapper ticketWrapper = mapper.readValue(file, TicketWrapper.class);
+            TicketWrapper ticketWrapper = mapper.readValue(stringBuilder.toString().replaceAll("\uFEFF", ""), TicketWrapper.class);
             Ticket[] ticketArray = ticketWrapper.getTickets();
 
             JsonProcessor jsonProcessor = new JsonProcessor();
